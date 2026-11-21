@@ -4,16 +4,28 @@ const { baseUrl, VIDEO, PHOTO, TEXT, profileField, platformsField, commonUploadF
 // Uploads run asynchronously (Zapier actions must finish within ~30 s): the
 // response carries data.upload_id, and the "Upload Completed / Failed"
 // triggers (or Find Upload) report the per-platform result.
-const sample = {
+// Samples mirror the live API responses of each endpoint.
+const queued = (message, extra = {}) => ({
   success: true,
-  message: 'Upload queued successfully',
+  message,
   request_id: 'upl_3f2a9c1d0b7e',
-  data: { upload_id: 'upl_3f2a9c1d0b7e', platforms: { instagram: 'queued', tiktok: 'queued' }, total_platforms: 2 },
+  data: { upload_id: 'upl_3f2a9c1d0b7e', platforms: { instagram: 'queued', tiktok: 'queued' }, total_platforms: 2, ...extra },
+});
+const videoSample = {
+  ...queued('Video URL accepted — downloading and processing asynchronously', { source: 'url', estimated_completion: '30s' }),
+  warnings: [],
+};
+const photoSample = queued('Photo upload queued successfully');
+const textSample = {
+  ...queued('Text post queued successfully'),
+  data: { upload_id: 'upl_3f2a9c1d0b7e', platforms: { linkedin: 'queued', x: 'queued' }, total_platforms: 2 },
 };
 const outputFields = [
   { key: 'data__upload_id', label: 'Upload ID' },
   { key: 'request_id', label: 'Request ID' },
   { key: 'message', label: 'Message' },
+  { key: 'success', label: 'Success', type: 'boolean' },
+  { key: 'data__total_platforms', label: 'Total Platforms', type: 'integer' },
 ];
 
 const post = (path) => async (z, bundle, extra = {}) => {
@@ -40,7 +52,7 @@ module.exports = {
         ...commonUploadFields,
       ],
       perform: async (z, bundle) => post('/api/upload')(z, bundle, { video_url: bundle.inputData.video }),
-      sample,
+      sample: videoSample,
       outputFields,
     },
   },
@@ -64,7 +76,7 @@ module.exports = {
         ...commonUploadFields,
       ],
       perform: async (z, bundle) => post('/api/upload_photos')(z, bundle, { photo_urls: [].concat(bundle.inputData.photos || []).filter(Boolean) }),
-      sample,
+      sample: photoSample,
       outputFields,
     },
   },
@@ -76,7 +88,7 @@ module.exports = {
     operation: {
       inputFields: [profileField, platformsField(TEXT, 'text post'), ...commonUploadFields],
       perform: async (z, bundle) => post('/api/upload_text')(z, bundle),
-      sample,
+      sample: textSample,
       outputFields,
     },
   },

@@ -7,13 +7,13 @@ const { baseUrl } = require('../lib');
 // on and unsubscribes when it is turned off. Each subscription has its own
 // secret; deliveries are signed with X-Post-Upload-Signature.
 
-const sample = {
+// Static samples mirror a real webhook delivery (services/uploadService.js
+// sendWebhookNotification in the API), minus the internal user_id.
+const baseSample = {
   id: 'upl_3f2a9c1d0b7e:upload.completed',
   event: 'upload.completed',
   upload_id: 'upl_3f2a9c1d0b7e',
   timestamp: '2026-11-21T10:30:01.000Z',
-  status: 'completed',
-  request_id: 'upl_3f2a9c1d0b7e',
   data: {
     title: 'Our new product is live',
     upload_type: 'video',
@@ -22,8 +22,40 @@ const sample = {
     platform_post_ids: { instagram: '17890000000000000', tiktok: '7300000000000000000' },
     profile: 'my-brand',
   },
+  request_id: 'upl_3f2a9c1d0b7e',
+  status: 'completed',
   completed_at: '2026-11-21T10:30:00.000Z',
 };
+const sample = baseSample;
+
+const failure = {
+  message: 'TikTok rejected the video',
+  platform_errors: { tiktok: { platform: 'tiktok', error: 'Video is shorter than 3 seconds', error_code: 'VIDEO_TOO_SHORT' } },
+};
+
+function sampleFor(event, status) {
+  const s = { ...baseSample, id: `upl_3f2a9c1d0b7e:${event}`, event, status, data: { ...baseSample.data } };
+  if (status === 'failed') {
+    s.data.platform_statuses = { instagram: 'failed', tiktok: 'failed' };
+    s.data.platform_post_ids = {};
+  }
+  if (status === 'partial') {
+    s.data.platform_statuses = { instagram: 'completed', tiktok: 'failed' };
+    s.data.platform_post_ids = { instagram: '17890000000000000' };
+  }
+  if (status === 'failed' || status === 'partial') {
+    s.platform_errors = failure.platform_errors;
+    s.error_message = JSON.stringify(failure);
+    s.error_details = failure;
+  }
+  return s;
+}
+
+function parseError(raw) {
+  if (!raw) return undefined;
+  if (typeof raw === 'object') return raw;
+  try { return JSON.parse(raw); } catch (e) { return { message: String(raw) }; }
+}
 
 function signatureValid(secret, raw, header) {
   if (!secret || !header || typeof raw !== 'string') return false;
@@ -34,13 +66,14 @@ function signatureValid(secret, raw, header) {
 
 /** Turns a history row into the same shape as a webhook event (for samples). */
 function fromUpload(u, event) {
+  const errorDetails = parseError(u.error_message);
+  const platformErrors = errorDetails && errorDetails.platform_errors && Object.keys(errorDetails.platform_errors).length
+    ? errorDetails.platform_errors : undefined;
   return {
     id: `${u.id}:${event}`,
     event,
     upload_id: u.id,
     timestamp: u.completed_at || u.created_at,
-    status: u.status,
-    request_id: u.request_id || u.id,
     data: {
       title: u.title,
       upload_type: u.upload_type,
@@ -48,17 +81,24 @@ function fromUpload(u, event) {
       platform_statuses: u.platform_statuses,
       platform_post_ids: u.platform_post_ids || undefined,
       profile: u.profile_name || undefined,
+      parent_upload_id: u.parent_upload_id || undefined,
     },
+    request_id: u.request_id || u.id,
+    status: u.status,
+    platform_errors: platformErrors,
     error_message: u.error_message || undefined,
+    error_details: errorDetails,
     completed_at: u.completed_at || undefined,
   };
 }
+
+const PLAN_NOTE = ' Needs the Post-Upload Advanced plan or higher (webhooks).';
 
 function makeTrigger({ key, event, label, description, status }) {
   return {
     key,
     noun: 'Upload',
-    display: { label, description },
+    display: { label, description: description + PLAN_NOTE },
     operation: {
       type: 'hook',
       inputFields: [
@@ -100,7 +140,9 @@ function makeTrigger({ key, event, label, description, status }) {
         }
         if (payload.event === 'test') return [{ ...sample, id: `test:${payload.timestamp || Date.now()}`, event: 'test' }];
         if (payload.event !== event) return [];
-        return [{ id: `${payload.upload_id}:${payload.event}`, ...payload }];
+        // user_id is Post-Upload's internal account number: not useful in a Zap.
+        const { user_id: _internal, ...rest } = payload;
+        return [{ id: `${payload.upload_id}:${payload.event}`, ...rest }];
       },
       performList: async (z, bundle) => {
         const res = await z.request({ url: `${baseUrl()}/api/uploads`, params: { status, limit: 25 } });
@@ -110,7 +152,7 @@ function makeTrigger({ key, event, label, description, status }) {
         if (event === 'upload.completed') uploads = uploads.filter((u) => !u.scheduled_at);
         return uploads.slice(0, 3).map((u) => fromUpload(u, event));
       },
-      sample: { ...sample, id: `upl_3f2a9c1d0b7e:${event}`, event, status },
+      sample: sampleFor(event, status),
     },
   };
 }

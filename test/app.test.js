@@ -86,6 +86,28 @@ describe('upload triggers', () => {
     expect(forged).toEqual([]);
   });
 
+  it('drops the internal user_id from a delivery', async () => {
+    const payload = { event: 'upload.failed', upload_id: 'upl_6', user_id: '33', data: { profile: 'brand' } };
+    const res = await appTester(t.perform, { cleanedRequest: payload });
+    expect(res).toEqual([{ id: 'upl_6:upload.failed', event: 'upload.failed', upload_id: 'upl_6', data: { profile: 'brand' } }]);
+  });
+
+  it('performList returns the same error fields as a webhook delivery', async () => {
+    const err = { message: 'TikTok rejected the video', platform_errors: { tiktok: { error: 'too short' } } };
+    nock(API).get('/api/uploads').query({ status: 'failed', limit: 25 }).reply(200, { uploads: [{ id: 'upl_8', status: 'failed', error_message: JSON.stringify(err), parent_upload_id: 'upl_1' }] });
+    const [row] = await appTester(t.performList, { authData, inputData: {} });
+    expect(row).toMatchObject({ error_details: err, platform_errors: err.platform_errors, error_message: JSON.stringify(err), data: { parent_upload_id: 'upl_1' } });
+  });
+
+  it('static samples carry the keys of a live delivery', () => {
+    const live = ['id', 'event', 'upload_id', 'timestamp', 'data', 'request_id', 'status', 'completed_at'];
+    for (const key of ['upload_completed', 'upload_failed', 'upload_partial', 'scheduled_post_published']) {
+      const s = App.triggers[key].operation.sample;
+      for (const k of live) expect(s).toHaveProperty(k);
+      if (key === 'upload_failed' || key === 'upload_partial') expect(s).toHaveProperty('error_details');
+    }
+  });
+
   it('performList builds samples from recent failed uploads', async () => {
     nock(API).get('/api/uploads').query({ status: 'failed', limit: 25 }).reply(200, { uploads: [{ id: 'upl_7', title: 'T', status: 'failed', profile_name: 'brand', platforms: ['x'], platform_statuses: { x: 'failed' } }] });
     const res = await appTester(t.performList, { authData, inputData: {} });

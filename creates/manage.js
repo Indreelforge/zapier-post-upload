@@ -22,7 +22,11 @@ module.exports = {
         const res = await z.request({ url: `${baseUrl()}/api/schedule/${enc(job_id)}`, method: 'PATCH', body });
         return res.data;
       },
-      sample: { success: true, message: 'Scheduled post updated', scheduled_at: '2026-12-01T09:30:00.000Z' },
+      sample: {
+        success: true,
+        message: 'Scheduled post updated',
+        post: { id: 'upl_3f2a9c1d0b7e', title: 'Launch post', caption: null, scheduled_date: '2026-12-01T09:30:00.000Z', platforms: ['linkedin'] },
+      },
     },
   },
 
@@ -43,14 +47,14 @@ module.exports = {
   retryUpload: {
     key: 'retry_upload',
     noun: 'Upload',
-    display: { label: 'Retry Failed Upload', description: 'Publishes a failed upload again on the platforms that failed.' },
+    display: { label: 'Retry Failed Upload', description: 'Publishes a failed upload again on the platforms that failed (paid plans).' },
     operation: {
       inputFields: [{ key: 'upload_id', label: 'Upload', required: true, dynamic: 'upload_list.id.label', helpText: 'Pick a failed upload, or map its upload ID (upl_…) from the Upload Failed trigger.' }],
       perform: async (z, bundle) => {
         const res = await z.request({ url: `${baseUrl()}/api/uploads/${enc(bundle.inputData.upload_id)}/retry`, method: 'POST' });
         return res.data;
       },
-      sample: { success: true, message: 'Retry queued', upload_id: 'upl_3f2a9c1d0b7e', new_status: 'queued', retry_platforms: ['tiktok'] },
+      sample: { success: true, message: 'Upload retry queued successfully', upload_id: 'upl_3f2a9c1d0b7e', new_status: 'queued', retry_platforms: ['tiktok'] },
     },
   },
 
@@ -64,7 +68,7 @@ module.exports = {
         const res = await z.request({ url: `${baseUrl()}/api/profiles`, method: 'POST', body: { name: bundle.inputData.name } });
         return res.data;
       },
-      sample: { success: true, profile: { id: 'b1f0c6c2-7d1a-4a2e-9d8a-0c7f5c1e2a11', name: 'client-acme' } },
+      sample: { success: true, profile: { id: 'b1f0c6c2-7d1a-4a2e-9d8a-0c7f5c1e2a11', name: 'client-acme', owner_id: 1234, status: 'active', connections: [] } },
     },
   },
 

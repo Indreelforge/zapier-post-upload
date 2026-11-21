@@ -11,7 +11,7 @@ afterEach(() => nock.cleanAll());
 // Every trigger, action and search of the app must appear here, so a new one
 // cannot ship without a test.
 const TESTED = {
-  triggers: ['upload_completed', 'upload_failed', 'upload_partial', 'scheduled_post_published', 'profile_list', 'scheduled_post_list', 'upload_list'],
+  triggers: ['upload_completed', 'upload_failed', 'upload_partial', 'scheduled_post_published', 'profile_list', 'scheduled_post_list', 'upload_list', 'failed_upload_list'],
   creates: ['upload_video', 'upload_photos', 'post_text', 'edit_scheduled_post', 'cancel_scheduled_post', 'retry_upload', 'create_profile', 'get_connect_link'],
   searches: ['find_upload', 'find_profile'],
 };
@@ -85,6 +85,13 @@ describe('dropdown triggers', () => {
     nock(API).get('/api/uploads').query({ limit: 50, status: 'failed' }).reply(200, { uploads: [{ id: 'upl_f', title: 'T', status: 'failed', profile_name: 'brand' }] });
     const res = await appTester(App.triggers.upload_list.operation.perform, { authData, inputData: { status: 'failed' } });
     expect(res[0]).toMatchObject({ id: 'upl_f', status: 'failed' });
+  });
+
+  it('failed_upload_list only asks for failed uploads, and Retry uses it', async () => {
+    nock(API).get('/api/uploads').query({ limit: 50, status: 'failed' }).reply(200, { uploads: [{ id: 'upl_f', title: 'T', status: 'failed', profile_name: 'brand' }] });
+    const res = await appTester(App.triggers.failed_upload_list.operation.perform, { authData });
+    expect(res).toEqual([{ id: 'upl_f', label: 'T · brand · failed', status: 'failed', title: 'T' }]);
+    expect(App.creates.retry_upload.operation.inputFields[0].dynamic).toBe('failed_upload_list.id.label');
   });
 });
 

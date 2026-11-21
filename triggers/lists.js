@@ -38,4 +38,17 @@ module.exports = {
       sample: { id: 'upl_3f2a9c1d0b7e', label: 'Launch post · my-brand · failed', status: 'failed', title: 'Launch post' },
     },
   },
+  // Retry only accepts failed uploads, so its dropdown lists only those.
+  failedUploadList: {
+    key: 'failed_upload_list',
+    noun: 'Upload',
+    display: { label: 'List Failed Uploads', description: 'Lists recent failed uploads (used for dropdowns).', hidden: true },
+    operation: {
+      perform: async (z) => {
+        const res = await z.request({ url: `${baseUrl()}/api/uploads`, params: { status: 'failed', limit: 50 } });
+        return (res.data.uploads || []).map((u) => ({ id: u.id, label: label(u), status: u.status, title: u.title }));
+      },
+      sample: { id: 'upl_3f2a9c1d0b7e', label: 'Launch post · my-brand · failed', status: 'failed', title: 'Launch post' },
+    },
+  },
 };

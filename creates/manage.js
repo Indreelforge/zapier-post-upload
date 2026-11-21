@@ -49,7 +49,7 @@ module.exports = {
     noun: 'Upload',
     display: { label: 'Retry Failed Upload', description: 'Publishes a failed upload again on the platforms that failed (paid plans).' },
     operation: {
-      inputFields: [{ key: 'upload_id', label: 'Upload', required: true, dynamic: 'upload_list.id.label', helpText: 'Pick a failed upload, or map its upload ID (upl_…) from the Upload Failed trigger.' }],
+      inputFields: [{ key: 'upload_id', label: 'Upload', required: true, dynamic: 'failed_upload_list.id.label', helpText: 'Pick a failed upload, or map its upload ID (upl_…) from the Upload Failed trigger.' }],
       perform: async (z, bundle) => {
         const res = await z.request({ url: `${baseUrl()}/api/uploads/${enc(bundle.inputData.upload_id)}/retry`, method: 'POST' });
         return res.data;

@@ -46,6 +46,7 @@ module.exports = {
     profileList,
     lists.scheduledPostList,
     lists.uploadList,
+    lists.failedUploadList,
   ]),
   creates: byKey([
     uploads.uploadVideo,

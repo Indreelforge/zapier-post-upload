@@ -37,7 +37,7 @@ function sampleFor(event, status) {
   const s = { ...baseSample, id: `upl_3f2a9c1d0b7e:${event}`, event, status, data: { ...baseSample.data } };
   if (status === 'failed') {
     s.data.platform_statuses = { instagram: 'failed', tiktok: 'failed' };
-    s.data.platform_post_ids = {};
+    delete s.data.platform_post_ids;
   }
   if (status === 'partial') {
     s.data.platform_statuses = { instagram: 'completed', tiktok: 'failed' };
@@ -127,8 +127,18 @@ function makeTrigger({ key, event, label, description, status }) {
         return {};
       },
       perform: async (z, bundle) => {
-        const payload = bundle.cleanedRequest || {};
         const raw = bundle.rawRequest && bundle.rawRequest.content;
+        // Prefer the signed raw body: Zapier's cleanedRequest also parses JSON
+        // inside strings (error_message would become an object) and adds a
+        // querystring key, so it would not match the polling sample.
+        let payload = null;
+        if (typeof raw === 'string' && raw) {
+          try { payload = JSON.parse(raw); } catch (e) { payload = null; }
+        }
+        if (!payload || typeof payload !== 'object') {
+          const { querystring: _qs, ...cleaned } = bundle.cleanedRequest || {};
+          payload = cleaned;
+        }
         const secret = bundle.subscribeData && bundle.subscribeData.secret;
         if (secret && raw) {
           const headers = (bundle.rawRequest && bundle.rawRequest.headers) || {};

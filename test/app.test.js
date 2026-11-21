@@ -86,6 +86,16 @@ describe('upload triggers', () => {
     expect(forged).toEqual([]);
   });
 
+  it('uses the signed raw body, so error_message stays a string like the polling sample', async () => {
+    const payload = { event: 'upload.failed', upload_id: 'upl_9', error_message: '{"message":"bad"}', error_details: { message: 'bad' } };
+    const raw = JSON.stringify(payload);
+    const sig = 'sha256=' + crypto.createHmac('sha256', 's3cret').update(raw).digest('hex');
+    // What Zapier's cleanedRequest looks like: nested JSON parsed, querystring added.
+    const cleanedRequest = { ...payload, error_message: { message: 'bad' }, querystring: {} };
+    const [row] = await appTester(t.perform, { cleanedRequest, rawRequest: { content: raw, headers: { 'Http-X-Post-Upload-Signature': sig } }, subscribeData: { secret: 's3cret' } });
+    expect(row).toEqual({ id: 'upl_9:upload.failed', ...payload });
+  });
+
   it('drops the internal user_id from a delivery', async () => {
     const payload = { event: 'upload.failed', upload_id: 'upl_6', user_id: '33', data: { profile: 'brand' } };
     const res = await appTester(t.perform, { cleanedRequest: payload });

@@ -90,7 +90,15 @@ module.exports = {
         const res = await z.request({ url: `${baseUrl()}/api/whitelabel/generate-jwt`, method: 'POST', body });
         return res.data;
       },
-      sample: { success: true, access_url: 'https://post-upload.com/connect/abc123', expires_at: '2026-11-23T10:00:00.000Z' },
+      sample: {
+        success: true,
+        access_url: 'https://post-upload.com/connect/0f3c9a7d2b6e4c18a5d1e9b7c3f2a640?jwt=eyJhbGciOiJIUzI1NiJ9.sample.signature',
+        token: '0f3c9a7d2b6e4c18a5d1e9b7c3f2a640',
+        jwt: 'eyJhbGciOiJIUzI1NiJ9.sample.signature',
+        expires_in: '48h',
+        expires_at: '2026-11-23T10:00:00.000Z',
+        rotated: false,
+      },
     },
   },
 };

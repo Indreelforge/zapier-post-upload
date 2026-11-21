@@ -1,0 +1,26 @@
+{
+  "name": "zapier-post-upload",
+  "version": "1.0.0",
+  "description": "Post-Upload for Zapier: publish videos, photos and text to 16 social networks, schedule posts and react to upload events.",
+  "main": "index.js",
+  "license": "MIT",
+  "homepage": "https://post-upload.com/integrations/zapier",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Indreelforge/zapier-post-upload.git"
+  },
+  "scripts": {
+    "test": "jest --testTimeout 10000"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "zapier-platform-core": "19.3.0"
+  },
+  "devDependencies": {
+    "jest": "29.7.0",
+    "nock": "13.5.6"
+  },
+  "private": true
+}

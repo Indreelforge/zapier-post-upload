@@ -115,6 +115,7 @@ describe('upload triggers', () => {
       const s = App.triggers[key].operation.sample;
       for (const k of live) expect(s).toHaveProperty(k);
       if (key === 'upload_failed' || key === 'upload_partial') expect(s).toHaveProperty('error_details');
+      if (key === 'upload_failed') expect(s).not.toHaveProperty('platform_errors');
     }
   });
 

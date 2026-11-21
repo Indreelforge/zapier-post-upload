@@ -44,10 +44,13 @@ function sampleFor(event, status) {
     s.data.platform_post_ids = { instagram: '17890000000000000' };
   }
   if (status === 'failed' || status === 'partial') {
-    s.platform_errors = failure.platform_errors;
     s.error_message = JSON.stringify(failure);
     s.error_details = failure;
   }
+  // A failure before publishing (e.g. the media URL could not be downloaded)
+  // has no per-platform errors, so the top-level platform_errors key only
+  // appears on partial events, where at least one platform failed.
+  if (status === 'partial') s.platform_errors = failure.platform_errors;
   return s;
 }
 

@@ -1,8 +1,8 @@
 # Post-Upload for Zapier
 
-Official [Post-Upload](https://post-upload.com) integration for Zapier. Publish videos, photos and text to **16 social networks** from any Zap, schedule and manage posts, and start Zaps the moment a post is published or fails.
+Official [Post-Upload](https://post-upload.com) integration for Zapier. Publish videos, photos and text to **22 platforms** from any Zap, schedule and manage posts, and start Zaps the moment a post is published or fails.
 
-Instagram · YouTube · TikTok · Facebook · X (Twitter) · LinkedIn · Threads · Pinterest · Reddit · Bluesky · Google Business Profile · Discord · Telegram · Slack · Mastodon · WordPress
+Instagram · YouTube · TikTok · Facebook · X (Twitter) · LinkedIn · Threads · Pinterest · Reddit · Bluesky · Google Business Profile · Discord · Telegram · Slack · Mastodon · WordPress · Dev.to · Hashnode · Lemmy · Nostr · Whop · Listmonk
 
 ## Connect
 
@@ -32,7 +32,7 @@ Each trigger can be limited to one profile. Turning a Zap on creates a [webhook 
 | Create Profile | Create a profile, e.g. one per client |
 | Create Client Connect Link | Branded page where a client connects their own accounts (whitelabel plans) |
 
-Every upload accepts **Schedule At**, **Add to Queue**, **First Comment**, **Your Reference** (deduplication) and **Platform Options** (for example `privacy_level` for TikTok, `pinterest_board_id`, `reddit_subreddit`). Uploads are processed in the background; use the triggers or **Find Upload** for the per-platform result.
+Every upload accepts **Schedule At**, **Add to Queue**, **First Comment**, **Your Reference** (deduplication) and **Platform Options** (for example `privacy_level` for TikTok, `pinterest_board_id`, `reddit_subreddit`, `devto_tags`, `listmonk_draft`). Uploads are processed in the background; use the triggers or **Find Upload** for the per-platform result.
 
 ## Searches
 

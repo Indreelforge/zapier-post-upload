@@ -5,26 +5,32 @@ const baseUrl = () => (process.env.POST_UPLOAD_API_BASE || 'https://api.post-upl
 
 const LABELS = {
   bluesky: 'Bluesky',
+  devto: 'Dev.to',
   discord: 'Discord',
   facebook: 'Facebook',
   google_business: 'Google Business Profile',
+  hashnode: 'Hashnode',
   instagram: 'Instagram',
+  lemmy: 'Lemmy',
   linkedin: 'LinkedIn',
+  listmonk: 'Listmonk',
   mastodon: 'Mastodon',
+  nostr: 'Nostr',
   pinterest: 'Pinterest',
   reddit: 'Reddit',
   slack: 'Slack',
   telegram: 'Telegram',
   threads: 'Threads',
   tiktok: 'TikTok',
+  whop: 'Whop',
   wordpress: 'WordPress',
   x: 'X (Twitter)',
   youtube: 'YouTube',
 };
 // What each platform accepts, mirroring shared/platforms.json.
-const VIDEO = ['bluesky', 'discord', 'facebook', 'instagram', 'linkedin', 'mastodon', 'pinterest', 'telegram', 'threads', 'tiktok', 'wordpress', 'x', 'youtube'];
-const PHOTO = ['bluesky', 'discord', 'facebook', 'google_business', 'instagram', 'linkedin', 'mastodon', 'pinterest', 'telegram', 'threads', 'tiktok', 'wordpress', 'x'];
-const TEXT = ['bluesky', 'discord', 'facebook', 'google_business', 'linkedin', 'mastodon', 'reddit', 'slack', 'telegram', 'threads', 'wordpress', 'x'];
+const VIDEO = ['bluesky', 'discord', 'facebook', 'instagram', 'linkedin', 'mastodon', 'pinterest', 'telegram', 'threads', 'tiktok', 'whop', 'wordpress', 'x', 'youtube'];
+const PHOTO = ['bluesky', 'discord', 'facebook', 'google_business', 'hashnode', 'instagram', 'lemmy', 'linkedin', 'listmonk', 'mastodon', 'nostr', 'pinterest', 'telegram', 'threads', 'tiktok', 'whop', 'wordpress', 'x'];
+const TEXT = ['bluesky', 'devto', 'discord', 'facebook', 'google_business', 'hashnode', 'lemmy', 'linkedin', 'listmonk', 'mastodon', 'nostr', 'reddit', 'slack', 'telegram', 'threads', 'whop', 'wordpress', 'x'];
 const choices = (keys) => keys.map((value) => ({ value, sample: value, label: LABELS[value] }));
 
 const profileField = {
@@ -51,13 +57,13 @@ const commonUploadFields = [
     label: 'Title / Caption',
     required: true,
     type: 'text',
-    helpText: 'The post text. It is the video title on YouTube and the caption everywhere else.',
+    helpText: 'The post text. It is the video title on YouTube, the article title on Dev.to and Hashnode, the post title on Lemmy, the email subject on Listmonk, and the caption everywhere else.',
   },
   {
     key: 'description',
     label: 'Description',
     type: 'text',
-    helpText: 'Optional longer text: the YouTube description, and added below the title on the other networks.',
+    helpText: 'Optional longer text: the YouTube description, the Markdown body on Dev.to, Hashnode, Lemmy, Whop forums and Listmonk, and added below the title on the other networks.',
   },
   { key: 'schedule', label: 'Schedule At', type: 'datetime', helpText: 'Publish later at this date and time. Leave empty to publish now.' },
   { key: 'timezone', label: 'Timezone', helpText: 'IANA timezone of Schedule At, e.g. America/New_York.' },
@@ -68,7 +74,7 @@ const commonUploadFields = [
     key: 'platform_options',
     label: 'Platform Options',
     dict: true,
-    helpText: 'Platform-specific settings sent as-is, e.g. `privacy_level` (required for TikTok), `pinterest_board_id`, `reddit_subreddit`, `youtube_privacy`. See [the platform guides](https://docs.post-upload.com/platform-guides/tiktok).',
+    helpText: 'Platform-specific settings sent as-is, e.g. `privacy_level` (required for TikTok), `pinterest_board_id`, `reddit_subreddit`, `youtube_privacy`, `devto_tags`, `lemmy_url`, `listmonk_draft` (`true` creates the Listmonk campaign as a draft instead of emailing your list). See [the platform guides](https://docs.post-upload.com/platform-guides/tiktok).',
   },
 ];
 

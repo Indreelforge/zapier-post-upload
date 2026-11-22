@@ -132,3 +132,43 @@ describe('searches', () => {
     expect(await appTester(App.searches.find_upload.operation.perform, { authData, inputData: { request_id: 'nope' } })).toEqual([]);
   });
 });
+
+describe('platform choices', () => {
+  // Mirrors shared/platforms.json in the Post-Upload repo (22 platforms).
+  const CONTENT = {
+    instagram: ['video', 'photo'], youtube: ['video'], facebook: ['video', 'photo', 'text'], tiktok: ['video', 'photo'],
+    x: ['video', 'photo', 'text'], linkedin: ['video', 'photo', 'text'], threads: ['video', 'photo', 'text'], pinterest: ['video', 'photo'],
+    reddit: ['text'], bluesky: ['video', 'photo', 'text'], google_business: ['photo', 'text'], discord: ['video', 'photo', 'text'],
+    telegram: ['video', 'photo', 'text'], slack: ['text'], mastodon: ['video', 'photo', 'text'], wordpress: ['video', 'photo', 'text'],
+    devto: ['text'], hashnode: ['photo', 'text'], lemmy: ['photo', 'text'], nostr: ['photo', 'text'],
+    whop: ['video', 'photo', 'text'], listmonk: ['photo', 'text'],
+  };
+  const platformChoices = (key) => App.creates[key].operation.inputFields.find((f) => f.key === 'platforms').choices;
+  const expected = (type) => Object.keys(CONTENT).filter((k) => CONTENT[k].includes(type)).sort();
+  for (const [key, type] of [['upload_video', 'video'], ['upload_photos', 'photo'], ['post_text', 'text']]) {
+    it(`${key} offers every platform that accepts ${type}, each with a label`, () => {
+      const choices = platformChoices(key);
+      expect(choices.map((c) => c.value).sort()).toEqual(expected(type));
+      for (const c of choices) expect(c.label).toBeTruthy();
+    });
+  }
+  it('labels the new platforms', () => {
+    const labels = Object.fromEntries(platformChoices('post_text').map((c) => [c.value, c.label]));
+    expect(labels).toMatchObject({ devto: 'Dev.to', hashnode: 'Hashnode', lemmy: 'Lemmy', nostr: 'Nostr', whop: 'Whop', listmonk: 'Listmonk' });
+  });
+  it('Post Text passes Dev.to, Lemmy and Listmonk options through', async () => {
+    let sent;
+    nock(API).post('/api/upload_text', (b) => { sent = b; return true; }).reply(201, { success: true, data: { upload_id: 'upl_3' } });
+    await appTester(App.creates.post_text.operation.perform, {
+      authData,
+      inputData: {
+        profile: 'brand', platforms: ['devto', 'lemmy', 'listmonk'], title: 'Launch notes', description: '# Body',
+        platform_options: { devto_tags: 'javascript, webdev', lemmy_url: 'https://example.com/a', listmonk_draft: 'true' },
+      },
+    });
+    expect(sent).toMatchObject({
+      platforms: ['devto', 'lemmy', 'listmonk'], title: 'Launch notes', description: '# Body',
+      devto_tags: 'javascript, webdev', lemmy_url: 'https://example.com/a', listmonk_draft: 'true',
+    });
+  });
+});

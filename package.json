@@ -1,7 +1,7 @@
 {
   "name": "zapier-post-upload",
-  "version": "1.0.5",
-  "description": "Post-Upload for Zapier: publish videos, photos and text to 16 social networks, schedule posts and react to upload events.",
+  "version": "1.0.6",
+  "description": "Post-Upload for Zapier: publish videos, photos and text to 22 platforms, schedule posts and react to upload events.",
   "main": "index.js",
   "license": "MIT",
   "homepage": "https://post-upload.com/integrations/zapier",
